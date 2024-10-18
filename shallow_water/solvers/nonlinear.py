@@ -1,14 +1,14 @@
 """Solvers for the Saint-Venant equation."""
 
-from .parameters import Parameters
+from .parameters import NonlinearParameters
 import numpy as np
 
 
 class ExplicitSolver(object):
-    def __init__(self, params: Parameters):
+    def __init__(self, params: NonlinearParameters):
         """Explicit solver for the Saint-Venant equation.
 
-        :param params: The :class:`Parameters` used for the solver.
+        :param params: The :class:`NonlinearParameters` used for the solver.
         """
         self.params = params
         self.x = params.grid

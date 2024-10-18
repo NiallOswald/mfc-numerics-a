@@ -5,7 +5,7 @@ import numpy as np
 
 
 @dataclass
-class Parameters:
+class NonlinearParameters:
     """Parameters for the Saint-Venant equation."""
 
     dx: float

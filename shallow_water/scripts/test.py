@@ -1,6 +1,6 @@
 """Test script for solving the non-linear shallow water equations."""
 
-from shallow_water.solvers.parameters import Parameters
+from shallow_water.solvers.parameters import NonlinearParameters
 from shallow_water.solvers.nonlinear import ExplicitSolver
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,8 +16,8 @@ rho = 1
 initial_h = 1 + 0.2 * np.cos(2 * np.pi * grid)
 initial_u = np.zeros_like(grid)
 
-params = Parameters(dx=dx, dt=dt, g=g, theta=theta, tau=tau, rho=rho,
-                    grid=grid, initial_h=initial_h, initial_u=initial_u)
+params = NonlinearParameters(dx=dx, dt=dt, g=g, theta=theta, tau=tau, rho=rho,
+                             grid=grid, initial_h=initial_h, initial_u=initial_u)
 
 # Solver
 solver = ExplicitSolver(params)
