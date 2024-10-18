@@ -10,7 +10,6 @@ class ExplicitSolver(object):
 
         :param params: The :class:`LinearParameters` used for the solver.
         """
-
         self.params = params
         self.x = params.grid
         self.h = params.initial_h
