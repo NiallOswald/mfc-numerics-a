@@ -19,6 +19,7 @@ class NonlinearParameters:
     initial_u: np.ndarray
 
 
+@dataclass
 class LinearParameters:
     """Parameters for the linearized Saint-Venant equation."""
 
