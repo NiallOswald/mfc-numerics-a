@@ -1,4 +1,4 @@
-"""Explicit solver for the Saint-Venant equation."""
+"""Solvers for the Saint-Venant equation."""
 
 from .parameters import Parameters
 import numpy as np
@@ -27,7 +27,7 @@ class ExplicitSolver(object):
         new_u[1:-1] = self.u[1:-1] - self.params.dt / (2 * self.params.dx) * (
             self.u[1:-1] * (self.u[2:] - self.u[:-2])
             + self.params.g * np.cos(self.params.theta) * (self.h[2:] - self.h[:-2])
-        ) + self.params.g * np.sin(self.params.theta) - self.params.tau / (self.params.rho * self.h[1:-1])
+        ) + self.params.dt * self.params.g * np.sin(self.params.theta) - self.params.dt * self.params.tau / (self.params.rho * self.h[1:-1])
 
         # Update the boundary points
         new_h[0] = self.h[0] - self.params.dt / (2 * self.params.dx) * (
@@ -36,7 +36,7 @@ class ExplicitSolver(object):
         new_u[0] = self.u[0] - self.params.dt / (2 * self.params.dx) * (
             self.u[0] * (self.u[1] - self.u[-2])
             + self.params.g * np.cos(self.params.theta) * (self.h[1] - self.h[-2])
-        ) + self.params.g * np.sin(self.params.theta) - self.params.tau / (self.params.rho * self.h[0])
+        ) + self.params.dt * self.params.g * np.sin(self.params.theta) - self.params.dt * self.params.tau / (self.params.rho * self.h[0])
 
         new_h[-1] = new_h[0]
         new_u[-1] = new_u[0]
