@@ -28,7 +28,6 @@ class LinearParameters:
     dt: float
     g: float
     theta: float
-    rho: float
     grid: np.ndarray
     H: float
     U: float
