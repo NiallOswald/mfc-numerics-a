@@ -1,6 +1,6 @@
 """Solvers for the linearized Saint-Venant equation."""
 
-from .parameters import LinearParameters
+from .parameters import LinearParameters, AnalyticParameters
 import numpy as np
 
 
@@ -43,3 +43,57 @@ class ExplicitSolver(object):
 
         self.h = new_h
         self.u = new_u
+
+
+class AnalyticSolver(object):
+    def __init__(self, params: AnalyticParameters):
+        """Analytic solver for the linearized Saint-Venant equation.
+
+        :param params: The :class:`LinearParameters` used for the solver.
+        """
+        self.params = params
+
+        self.solution = self._generate_solution()
+        self.time = 0
+
+    def _generate_solution(self):
+        """Compute the analytic solution."""
+        # Setup
+        A = np.array([
+            [self.params.U, self.params.H],
+            [self.params.g, self.params.U]
+        ])
+        eigs, eigv = np.linalg.eig(A)
+
+        init = lambda x: np.array([self.params.initial_h(x), self.params.initial_u(x)])
+        forcing = np.array([0, self.params.g * self.params.theta])
+
+        # Compute the solution in eigenspace
+        inv_init = lambda x: np.linalg.solve(eigv, init(x))
+        inv_forcing = np.linalg.solve(eigv, forcing)
+        inv_sol = lambda x, t: inv_forcing[:, np.newaxis] * t + np.array([inv_init(x - eigs[0] * t)[0, :], inv_init(x - eigs[1] * t)[1, :]])
+
+        # Invert the transformation
+        sol = lambda x, t: eigv @ inv_sol(x, t)
+
+        return sol
+
+    def evaluate(self, x: float, t: float):
+        """Evaluate the analytic solution at time `t`."""
+        return self.solution(x, t)
+
+    def __call__(self, t: float):
+        """Evaluate the analytic solution at time `t` on the grid."""
+        return self.evaluate(self.params.grid, t)
+
+    def step(self):
+        """Simulate a time-step for comparison with numerical solutions."""
+        self.time += self.params.dt
+
+    @property
+    def h(self):
+        return self(self.time)[0, :]
+
+    @property
+    def u(self):
+        return self(self.time)[1, :]

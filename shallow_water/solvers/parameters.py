@@ -1,6 +1,7 @@
 """Parameters for the Saint-Venant equation."""
 
 from dataclasses import dataclass
+from typing import Callable
 import numpy as np
 
 
@@ -33,3 +34,17 @@ class LinearParameters:
     U: float
     initial_h: np.ndarray
     initial_u: np.ndarray
+
+
+@dataclass
+class AnalyticParameters:
+    """Parameters for the linearized Saint-Venant equation."""
+
+    dt: float
+    g: float
+    theta: float
+    grid: np.ndarray
+    H: float
+    U: float
+    initial_h: Callable[[float], float]
+    initial_u: Callable[[float], float]
