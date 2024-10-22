@@ -45,6 +45,47 @@ class ExplicitSolver(object):
         self.u = new_u
 
 
+class UpwindSolver(object):
+    def __init__(self, params: LinearParameters):
+        """Upwind solver for the linearized Saint-Venant equation.
+
+        :param params: The :class:`LinearParameters` used for the solver.
+        """
+        self.params = params
+        self.x = params.grid
+        self.h = params.initial_h
+        self.u = params.initial_u
+
+    def step(self):
+        """Perform a single time step."""
+        new_h = np.zeros_like(self.h)
+        new_u = np.zeros_like(self.u)
+
+        # Update the interior points
+        new_h[1:-1] = self.h[1:-1] - self.params.dt / self.params.dx * (
+            self.params.H * (self.u[1:-1] - self.u[:-2]) + self.params.U * (self.h[1:-1] - self.h[:-2])
+        )
+        new_u[1:-1] = self.u[1:-1] - self.params.dt / self.params.dx * (
+            self.params.U * (self.u[1:-1] - self.u[:-2])
+            + self.params.g * (self.h[1:-1] - self.h[:-2])
+        ) + self.params.dt * self.params.g * self.params.theta
+
+        # Update the boundary points
+        new_h[0] = self.h[0] - self.params.dt / self.params.dx * (
+            self.params.H * (self.u[0] - self.u[-2]) + self.params.U * (self.h[0] - self.h[-2])
+        )
+        new_u[0] = self.u[0] - self.params.dt / self.params.dx * (
+            self.params.U * (self.u[0] - self.u[-2])
+            + self.params.g * (self.h[0] - self.h[-2])
+        ) + self.params.dt * self.params.g * self.params.theta
+
+        new_h[-1] = new_h[0]
+        new_u[-1] = new_u[0]
+
+        self.h = new_h
+        self.u = new_u
+
+
 class AnalyticSolver(object):
     def __init__(self, params: AnalyticParameters):
         """Analytic solver for the linearized Saint-Venant equation.
