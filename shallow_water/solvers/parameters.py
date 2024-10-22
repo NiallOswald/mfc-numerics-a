@@ -24,7 +24,6 @@ class NonlinearParameters:
 class LinearParameters:
     """Parameters for the linearized Saint-Venant equation."""
 
-    dx: float
     dt: float
     g: float
     theta: float
@@ -33,6 +32,10 @@ class LinearParameters:
     U: float
     initial_h: np.ndarray
     initial_u: np.ndarray
+
+    @property
+    def dx(self) -> float:  # noqa: D102
+        return self.grid[1] - self.grid[0]
 
 
 @dataclass
