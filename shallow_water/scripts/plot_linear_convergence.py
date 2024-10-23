@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 from shallow_water.solvers.parameters import (LinearParameters,
                                               AnalyticParameters)
-from shallow_water.solvers.linear import UpwindSolver, AnalyticSolver
+from shallow_water.solvers.linear import (ForwardSolver, ForwardBackwardSolver,
+                                          AnalyticSolver)
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,6 +51,12 @@ def plot_linear_convergence():  # noqa: D103
         "--U", type=float, default=1., help='The reference velocity of the '
         'fluid.'
     )
+    parser.add_argument(
+        "--method", choices=['forward', 'forward_backward'],
+        default='forward_backward', help='The method to use for the '
+        'simulation. Selecting "forward_backward" will override the U '
+        'parameter.'
+    )
 
     args = parser.parse_args()
     start_point = args.start_point
@@ -60,10 +67,20 @@ def plot_linear_convergence():  # noqa: D103
     theta = args.theta
     H = args.H  # noqa: N806
     U = args.U  # noqa: N806
+    method_str = args.method
 
     # Vectorize the initial conditions
     initial_h = np.vectorize(initial_h)
     initial_u = np.vectorize(initial_u)
+
+    # Select the method
+    if method_str == 'forward':
+        solver_class = ForwardSolver
+    elif method_str == 'forward_backward':
+        solver_class = ForwardBackwardSolver
+        U = 0.  # noqa: N806
+    else:
+        raise ValueError(f"Unknown method {method_str}")
 
     n_values = 2 ** np.arange(4, 12)
     colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w', 'orange', 'purple']
@@ -73,7 +90,7 @@ def plot_linear_convergence():  # noqa: D103
 
         # Choose dt such that the stability condition is satisfied
         dx = grid[1] - grid[0]
-        dt = 0.5 * min(dx / (U + G), dx / (H + U))
+        dt = dx / (U + G)
 
         lin_params = LinearParameters(
             dt, G, theta, grid, H, U, initial_h(grid), initial_u(grid)
@@ -82,7 +99,7 @@ def plot_linear_convergence():  # noqa: D103
             dt, G, theta, grid, H, U, initial_h, initial_u
         )
 
-        solver = UpwindSolver(lin_params)
+        solver = solver_class(lin_params)
         exact = AnalyticSolver(ana_params)
 
         n_steps = int(final_time / dt)
