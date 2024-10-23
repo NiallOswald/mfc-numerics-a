@@ -4,9 +4,9 @@ from .parameters import LinearParameters, AnalyticParameters
 import numpy as np
 
 
-class ExplicitSolver(object):
+class ForwardSolver(object):
     def __init__(self, params: LinearParameters):
-        """Explicit solver for the linearized Saint-Venant equation.
+        """Forward-in-time solver for the linearized Saint-Venant equation.
 
         :param params: The :class:`LinearParameters` used for the solver.
         """
