@@ -45,6 +45,43 @@ class ExplicitSolver(object):
         self.u = new_u
 
 
+class ForwardBackwardSolver(object):
+    def __init__(self, params: LinearParameters):
+        """Fowards-backwards solver for the linearized Saint-Venant equation.
+
+        :param params: The :class:`LinearParameters` used for the solver.
+        """
+        self.params = params
+        self.x = params.grid
+        self.h = params.initial_h
+        self.u = params.initial_u
+
+    def step(self):
+        """Perform a single time step."""
+        new_h = np.zeros_like(self.h)
+        new_u = np.zeros_like(self.u)
+
+        # Forwards step
+        new_h[1:-1] = self.h[1:-1] - self.params.dt / (2 * self.params.dx) * (
+            self.params.H * (self.u[2:] - self.u[:-2])
+        )
+        new_h[0] = self.h[0] - self.params.dt / (2 * self.params.dx) * (
+            self.params.H * (self.u[1] - self.u[-2])
+        )
+        new_h[-1] = new_h[0]
+
+        # Backwards step
+        new_u[1:-1] = self.u[1:-1] - self.params.dt / (2 * self.params.dx) * (
+            self.params.g * (new_h[2:] - new_h[:-2])
+        ) + self.params.dt * self.params.g * self.params.theta
+        new_u[0] = self.u[0] - self.params.dt / (2 * self.params.dx) * (
+            self.params.g * (new_h[1] - new_h[-2])
+        ) + self.params.dt * self.params.g * self.params.theta
+        new_u[-1] = new_u[0]
+
+        self.h = new_h
+        self.u = new_u
+
 class AnalyticSolver(object):
     def __init__(self, params: AnalyticParameters):
         """Analytic solver for the linearized Saint-Venant equation.
