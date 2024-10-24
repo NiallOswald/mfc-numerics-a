@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import *  # noqa: F401,F403
 
+MAX_GRID = 14
+INTERPOLATION_POINTS = 3
 G = 9.81
 
 
@@ -26,8 +28,8 @@ def plot_linear_convergence():  # noqa: D103
         'domain.'
     )
     parser.add_argument(
-        "--final_time", type=float, default=1., help='The final time of the '
-        'simulation.'
+        "--final_time", type=float, default=1., help='The target final time '
+        'of the simulation.'
     )
     parser.add_argument(
         "initial_h", type=str, nargs=1,
@@ -57,6 +59,9 @@ def plot_linear_convergence():  # noqa: D103
         'simulation. Selecting "forward_backward" will override the U '
         'parameter.'
     )
+    parser.add_argument(
+        "--path", type=str, default='.', help='The path to save the plot.'
+    )
 
     args = parser.parse_args()
     start_point = args.start_point
@@ -68,6 +73,7 @@ def plot_linear_convergence():  # noqa: D103
     H = args.H  # noqa: N806
     U = args.U  # noqa: N806
     method_str = args.method
+    path = args.path
 
     # Vectorize the initial conditions
     initial_h = np.vectorize(initial_h)
@@ -82,15 +88,15 @@ def plot_linear_convergence():  # noqa: D103
     else:
         raise ValueError(f"Unknown method {method_str}")
 
-    n_values = 2 ** np.arange(4, 12)
-    colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w', 'orange', 'purple']
+    n_values = 2 ** np.arange(4, MAX_GRID + 1)
+    errors = np.zeros((len(n_values), 2))
 
     for i, n in enumerate(n_values):
-        grid = np.linspace(start_point, end_point, n)
+        grid = np.linspace(start_point, end_point, n + 1)
 
         # Choose dt such that the stability condition is satisfied
         dx = grid[1] - grid[0]
-        dt = dx / (U + G)
+        dt = 0.5 * dx * np.sqrt(2 / (G * H))
 
         lin_params = LinearParameters(
             dt, G, theta, grid, H, U, initial_h(grid), initial_u(grid)
@@ -112,8 +118,26 @@ def plot_linear_convergence():  # noqa: D103
         print(f"n = {n}, h_error = {h_error}, u_error = {u_error}, "
               f"final_time = {n_steps * dt}")
 
-        plt.plot(grid, solver.h, label=f"n = {n}", color=colors[i])
-        plt.plot(grid, exact.h, color=colors[i], linestyle='--')
+        errors[i] = [h_error, u_error]
 
+    # Plot the errors
+    plt.loglog(n_values, errors[:, 0], "k-", label=r"$h$")
+    plt.loglog(n_values, errors[:, 1], "k--", label=r"$\bar{u}$")
+
+    # Plot a line of best fit
+    m, c = np.polyfit(
+        np.log(n_values[-INTERPOLATION_POINTS:]),
+        np.log(np.mean(errors[-INTERPOLATION_POINTS:, :], axis=1)),
+        1,
+    )
+    plt.loglog(n_values, np.exp(c) * n_values**m, "k:",
+               label=r"$N^{"f"{m:.2f}""}$")
+
+    plt.xlabel(r"$N$")
+    plt.ylabel("Error")
     plt.legend()
-    plt.savefig("output.png")
+    plt.tight_layout()
+
+    plt.savefig(f"{path}/linear_convergence.png", dpi=300)
+
+    plt.show()
