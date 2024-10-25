@@ -8,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import *  # noqa: F401,F403
 
-MAX_GRID = 14
 INTERPOLATION_POINTS = 3
 G = 9.81
 
@@ -54,10 +53,17 @@ def plot_linear_convergence():  # noqa: D103
         'fluid.'
     )
     parser.add_argument(
+        "--max_grid", type=int, default=10, help='The maximum grid size to '
+        'use for the convergence study.'
+    )
+    parser.add_argument(
         "--method", choices=['forward', 'forward_backward'],
         default='forward_backward', help='The method to use for the '
         'simulation. Selecting "forward_backward" will override the U '
         'parameter.'
+    )
+    parser.add_argument(
+        "--plot_solutions", action='store_true', help='Plot the solutions.'
     )
     parser.add_argument(
         "--path", type=str, default='.', help='The path to save the plot.'
@@ -72,7 +78,9 @@ def plot_linear_convergence():  # noqa: D103
     theta = args.theta
     H = args.H  # noqa: N806
     U = args.U  # noqa: N806
+    max_grid = args.max_grid
     method_str = args.method
+    plot_solutions = args.plot_solutions
     path = args.path
 
     # Vectorize the initial conditions
@@ -88,15 +96,23 @@ def plot_linear_convergence():  # noqa: D103
     else:
         raise ValueError(f"Unknown method {method_str}")
 
-    n_values = 2 ** np.arange(4, MAX_GRID + 1)
+    n_values = 2 ** np.arange(4, max_grid + 1)
     errors = np.zeros((len(n_values), 2))
+
+    # Setup figure
+    if plot_solutions:
+        plt.figure()
+        plt.plot([], [], "k-", label="Numerical")
+        plt.plot([], [], "k--", label="Exact")
+
+        colors = plt.cm.jet(np.linspace(0, 1, len(n_values)))
 
     for i, n in enumerate(n_values):
         grid = np.linspace(start_point, end_point, n + 1)
 
         # Choose dt such that the stability condition is satisfied
         dx = grid[1] - grid[0]
-        dt = 0.5 * dx * np.sqrt(2 / (G * H))
+        dt = dx / np.sqrt(G * H)
 
         lin_params = LinearParameters(
             dt, G, theta, grid, H, U, initial_h(grid), initial_u(grid)
@@ -120,7 +136,20 @@ def plot_linear_convergence():  # noqa: D103
 
         errors[i] = [h_error, u_error]
 
+        if plot_solutions:
+            plt.plot(grid, solver.h, color=colors[i], linestyle="-")
+            plt.plot(grid, exact.h, color=colors[i], linestyle="--")
+
+    if plot_solutions:
+        plt.xlabel(r"$x$")
+        plt.ylabel(r"$h$")
+        plt.legend()
+        plt.tight_layout()
+
+        plt.savefig(f"{path}/solutions.png", dpi=300)
+
     # Plot the errors
+    plt.figure()
     plt.loglog(n_values, errors[:, 0], "k-", label=r"$h$")
     plt.loglog(n_values, errors[:, 1], "k--", label=r"$\bar{u}$")
 
@@ -139,5 +168,3 @@ def plot_linear_convergence():  # noqa: D103
     plt.tight_layout()
 
     plt.savefig(f"{path}/linear_convergence.png", dpi=300)
-
-    plt.show()
