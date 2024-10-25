@@ -22,7 +22,8 @@ class ForwardSolver(object):
 
         # Update the interior points
         new_h[1:-1] = self.h[1:-1] - self.params.dt / (2 * self.params.dx) * (
-            self.params.H * (self.u[2:] - self.u[:-2]) + self.params.U * (self.h[2:] - self.h[:-2])
+            self.params.H * (self.u[2:] - self.u[:-2])
+            + self.params.U * (self.h[2:] - self.h[:-2])
         )
         new_u[1:-1] = self.u[1:-1] - self.params.dt / (2 * self.params.dx) * (
             self.params.U * (self.u[2:] - self.u[:-2])
@@ -31,7 +32,8 @@ class ForwardSolver(object):
 
         # Update the boundary points
         new_h[0] = self.h[0] - self.params.dt / (2 * self.params.dx) * (
-            self.params.H * (self.u[1] - self.u[-2]) + self.params.U * (self.h[1] - self.h[-2])
+            self.params.H * (self.u[1] - self.u[-2])
+            + self.params.U * (self.h[1] - self.h[-2])
         )
         new_u[0] = self.u[0] - self.params.dt / (2 * self.params.dx) * (
             self.params.U * (self.u[1] - self.u[-2])
@@ -82,6 +84,7 @@ class ForwardBackwardSolver(object):
         self.h = new_h
         self.u = new_u
 
+
 class AnalyticSolver(object):
     def __init__(self, params: AnalyticParameters):
         """Analytic solver for the linearized Saint-Venant equation.
@@ -102,13 +105,20 @@ class AnalyticSolver(object):
         ])
         eigs, eigv = np.linalg.eig(A)
 
-        init = lambda x: np.array([self.params.initial_h(x), self.params.initial_u(x)])
+        init = lambda x: np.array([self.params.initial_h(x),
+                                   self.params.initial_u(x)])
         forcing = np.array([0, self.params.g * self.params.theta])
 
         # Compute the solution in eigenspace
         inv_init = lambda x: np.linalg.solve(eigv, init(x))
         inv_forcing = np.linalg.solve(eigv, forcing)
-        inv_sol = lambda x, t: inv_forcing[:, np.newaxis] * t + np.array([inv_init(x - eigs[0] * t)[0, :], inv_init(x - eigs[1] * t)[1, :]])
+        inv_sol = lambda x, t: (
+            inv_forcing[:, np.newaxis] * t
+            + np.array([
+                inv_init(x - eigs[0] * t)[0, :],
+                inv_init(x - eigs[1] * t)[1, :]
+            ])
+        )
 
         # Invert the transformation
         sol = lambda x, t: eigv @ inv_sol(x, t)
@@ -128,9 +138,9 @@ class AnalyticSolver(object):
         self.time += self.params.dt
 
     @property
-    def h(self):
+    def h(self):  # noqa: D102
         return self(self.time)[0, :]
 
     @property
-    def u(self):
+    def u(self):  # noqa: D102
         return self(self.time)[1, :]
