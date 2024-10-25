@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 plot_linear_convergence = "shallow_water.scripts.plot_linear_convergence:plot_linear_convergence"
+plot_stability_sweep = "shallow_water.scripts.plot_stability_sweep:plot_stability_sweep"
 
 [tool.hatch.build.targets.wheel]
 packages = ["shallow_water"]
