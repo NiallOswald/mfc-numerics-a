@@ -2,6 +2,9 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["shallow_water"]
+
 [project]
 name = "numerical-analysis-report"
 version = "2024.0"
@@ -11,14 +14,13 @@ authors = [
     { name = "Niall Oswald", email = "niall.oswald20@imperial.ac.uk" },
 ]
 dependencies = [
-    "alive-progress",
     "matplotlib",
     "numpy", 
 ]
 
 [project.scripts]
-plot_linear_convergence = "shallow_water.scripts.plot_linear_convergence:plot_linear_convergence"
+plot_solution = "shallow_water.scripts.plot_solution:plot_solution"
+plot_convergence = "shallow_water.scripts.plot_convergence:plot_convergence"
+plot_moment = "shallow_water.scripts.plot_moment:plot_moment"
 plot_stability_sweep = "shallow_water.scripts.plot_stability_sweep:plot_stability_sweep"
-
-[tool.hatch.build.targets.wheel]
-packages = ["shallow_water"]
+plot_comparison = "shallow_water.scripts.plot_comparison:plot_comparison"
