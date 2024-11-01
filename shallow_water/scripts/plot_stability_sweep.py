@@ -99,7 +99,7 @@ def plot_stability_sweep():  # noqa: D103
     plt.yscale("log")
 
     plt.xlabel(r"$\beta$")
-    plt.ylabel("Error")
+    plt.ylabel(r"$L^{\infty}$-error")
 
     plt.legend()
     plt.grid()

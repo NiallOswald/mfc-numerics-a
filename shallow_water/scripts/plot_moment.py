@@ -104,7 +104,7 @@ def plot_moment():  # noqa: D103
     plt.plot(np.arange(n_steps) * params.dt, moment_values, "k-")
 
     plt.xlabel(r"$t$")
-    plt.ylabel("Error" if plot_error else y_label)
+    plt.ylabel(r"$L^{\infty}$-error" if plot_error else y_label)
 
     if plot_error:
         plt.yscale("log")

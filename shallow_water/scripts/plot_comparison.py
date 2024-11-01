@@ -115,7 +115,7 @@ def plot_comparison():  # noqa: D103
     plt.loglog(n_values, np.exp(c) * n_values**m, "k:", label=r"$N^{" f"{m:.2f}" r"}$")
 
     plt.xlabel(r"$N$")
-    plt.ylabel("Error")
+    plt.ylabel(r"$L^{\infty}$-error")
     plt.legend()
     plt.tight_layout()
 
