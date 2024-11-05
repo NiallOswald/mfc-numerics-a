@@ -80,7 +80,7 @@ Note that this may require additional permissions which can be added by running:
 $ chmod +x plot_all.sh
 ```
 
-Alternatively, you can run the script with only read permission by passing it as an argument to the `sh` command:
+Alternatively, you can run the script with read-only permissions by passing it as an argument to the `sh` command:
 ```
 $ sh plot_all.sh
 ```
